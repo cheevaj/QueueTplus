@@ -274,6 +274,7 @@
         <v-btn
           fab
           small
+          :disabled="queuesnotsuccess.length === 0"
           text
           class="custom-btn"
           style="
@@ -468,26 +469,41 @@ export default {
         this.active = false
       }
     },
-    async useQueue(item, active) {
-      this.$store.commit('SET_QUEUE_USE', item)
-      if (active) {
-        this.queues = this.queues
-          ? this.queues.filter((queue) => queue.id !== item.id)
-          : []
+    async useQueue(item, ati) {
+      if (ati) {
         try {
-          const response = await this.$axios.post(
-            'http://172.28.17.102:3600/monitor/employeeprocess',
-            {
+          const response = await this.$axios
+            .post('http://172.28.17.102:3600/monitor/employeeprocess', {
               phonenumber: item.phonenumber,
               employeeId: this.fistname,
               branchid: item.branchid,
-            }
-          )
+            })
+            .catch((error) => {
+              if (error.response) {
+                if (error.response.status === 500) {
+                  console.log('Server error: 500')
+                } else if (error.response.status === 404) {
+                  this.queues = this.queues
+                    ? this.queues.filter((queue) => queue.id !== item.id)
+                    : []
+                  this.active = false
+                  this.messageModal('warning', 'ມີຄົນຮັບຄິວແລ້ວ')
+                } else {
+                  console.log(`Error: ${error.response.status}`)
+                }
+              } else {
+                console.error('Network error or no response:', error)
+              }
+              return null
+            })
+          this.active = true
+          this.$store.commit('SET_QUEUE_USE', item)
+          this.queues = this.queues
+            ? this.queues.filter((queue) => queue.id !== item.id)
+            : []
           console.log(response.statusText)
         } catch (error) {
           console.error('Error fetching data:', error)
-        } finally {
-          this.active = true
         }
       } else {
         this.queuesnotsuccess = this.queuesnotsuccess
@@ -495,8 +511,8 @@ export default {
               (queuesnotsuccess) => queuesnotsuccess.id !== item.id
             )
           : []
+          this.$store.commit('SET_QUEUE_USE', item);
       }
-      this.active = true
       this.calculateTimeDifference(true)
       this.modalTyple = false
     },
@@ -615,7 +631,7 @@ export default {
     messageModal(type, content) {
       this.$Message[type]({
         background: true,
-        content: `<span class="custom-font">${content}`,
+        content: `<span class="custom-font">${content}</span>`,
       })
     },
   },
@@ -645,7 +661,7 @@ export default {
   background-color: #ffff4d;
   left: 0;
   top: 0;
-  transform: translateY(15px) translateX(130px);
+  transform: translateY(15px) translateX(110px);
 }
 .border-card {
   border: 1px solid rgb(96, 96, 96);
@@ -657,49 +673,49 @@ export default {
 }
 .custom-queue:nth-child(1) {
   z-index: 9;
-  transform: translateY(0px) translateX(130px);
+  transform: translateY(0px) translateX(110px);
 }
 
 .custom-queue:nth-child(2) {
   z-index: 8;
-  transform: translateY(5px) translateX(120px);
+  transform: translateY(5px) translateX(100px);
 }
 
 .custom-queue:nth-child(3) {
   z-index: 7;
-  transform: translateY(10px) translateX(110px);
+  transform: translateY(10px) translateX(90px);
 }
 
 .custom-queue:nth-child(4) {
   z-index: 6;
-  transform: translateY(15px) translateX(100px);
+  transform: translateY(15px) translateX(80px);
 }
 
 .custom-queue:nth-child(5) {
   z-index: 5;
-  transform: translateY(20px) translateX(90px);
+  transform: translateY(20px) translateX(70px);
 }
 
 .custom-queue:nth-child(6) {
   z-index: 4;
-  transform: translateY(25px) translateX(80px);
+  transform: translateY(25px) translateX(60px);
 }
 
 .custom-queue:nth-child(7) {
   z-index: 3;
-  transform: translateY(30px) translateX(70px);
+  transform: translateY(30px) translateX(50px);
 }
 .custom-queue:nth-child(8) {
   z-index: 2;
-  transform: translateY(35px) translateX(60px);
+  transform: translateY(35px) translateX(40px);
 }
 .custom-queue:nth-child(9) {
   z-index: 1;
-  transform: translateY(40px) translateX(50px);
+  transform: translateY(40px) translateX(30px);
 }
 .custom-queue:nth-child(n + 10) {
   z-index: 0;
-  transform: translateY(45px) translateX(40px);
+  transform: translateY(45px) translateX(20px);
 }
 .custom-card {
   border: 1px solid rgb(166, 166, 166);
@@ -755,24 +771,4 @@ export default {
   scrollbar-width: thin;
   scrollbar-color: rgb(255, 215, 0) #ffffff;
 }
-
-/* .table-container ::-webkit-scrollbar {
-  width: 4px;
-  height: 2px;
-}
-
-.table-container ::-webkit-scrollbar-thumb {
-  background-color: rgb(255, 215, 0);
-  border-radius: 4px;
-}
-
-.table-container ::-webkit-scrollbar-track {
-  background-color: #ffff00;
-  border-radius: 4px;
-}
-
-.table-container ::-webkit-scrollbar-corner {
-  background-color: #ffff00;
-  border-radius: 4px;
-} */
 </style>
