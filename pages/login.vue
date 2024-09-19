@@ -172,7 +172,6 @@ export default {
         if (response.data) {
           this.$store.commit('setToken', response.data);
           this.$router.push('/')
-          console.log(response.data)
         } else {
           console.error('Invalid response data')
         }

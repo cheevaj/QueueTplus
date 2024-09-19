@@ -24,16 +24,16 @@
     <v-row>
       <v-col cols="6" class="pa-6">
         <v-card class="custom-card shadow-card" outlined>
-          <div v-if="queues.length !== 0" class="stacked-cards">
+          <div v-if="queue.length !== 0" class="stacked-cards">
             <v-card
               outlined
               class="text-center d-flex justify-center align-center custom-number-queue"
               width="35"
               height="35"
-              ><h3>{{ queues.length }}</h3></v-card
+              ><h3>{{ queue.length }}</h3></v-card
             >
             <v-card
-              v-for="(item, index) in queues"
+              v-for="(item, index) in queue"
               :key="index"
               outlined
               class="custom-queue border-card"
@@ -388,9 +388,7 @@ export default {
   Currency: 'DefaultLayout',
   data() {
     return {
-      queues: [],
       queuesnotsuccess: [],
-      title: '',
       timeDifference: 0,
       loading: false,
       formattedTime: '00:00',
@@ -414,11 +412,28 @@ export default {
     fistname() {
       return this.$auth.user.name
     },
+    userstatus() {
+      return this.$auth.user
+    },
+    admin() {
+      return this.$store.state.branch_id
+    },
+    adminstatus() {
+      const status =
+        (this.$auth.user.name === 'chivang' || this.$auth.user.name === 'chivang') && (this.$auth.user.branchid === 1)
+      return status
+    },
+    title(){
+      return this.$store.state.title
+    },
   },
   mounted() {
     this.dataResponseAll()
   },
   methods: {
+    selectItem(index) {
+      this.selectedItem = index
+    },
     refreshData() {
       this.loading = true
       this.dataResponseAll()
@@ -483,9 +498,7 @@ export default {
                 if (error.response.status === 500) {
                   console.log('Server error: 500')
                 } else if (error.response.status === 404) {
-                  this.queues = this.queues
-                    ? this.queues.filter((queue) => queue.id !== item.id)
-                    : []
+                  this.$store.commit('removeQUEUE', item.id)
                   this.active = false
                   this.messageModal('warning', 'ມີຄົນຮັບຄິວແລ້ວ')
                 } else {
@@ -496,11 +509,12 @@ export default {
               }
               return null
             })
-          this.active = true
-          this.$store.commit('SET_QUEUE_USE', item)
-          this.queues = this.queues
-            ? this.queues.filter((queue) => queue.id !== item.id)
-            : []
+          if (response) {
+            this.active = true
+            this.$store.commit('SET_QUEUE_USE', item)
+          }
+          // console.log(item.id)
+          this.$store.commit('removeQUEUE', item.id);
           console.log(response.statusText)
         } catch (error) {
           console.error('Error fetching data:', error)
@@ -511,19 +525,20 @@ export default {
               (queuesnotsuccess) => queuesnotsuccess.id !== item.id
             )
           : []
-          this.$store.commit('SET_QUEUE_USE', item);
+        this.$store.commit('SET_QUEUE_USE', item)
       }
       this.calculateTimeDifference(true)
       this.modalTyple = false
     },
     async dataResponseAll() {
+      const branchIdToSend = this.adminstatus ? (this.admin !== 0 ? this.admin : this.branchid) : this.branchid;
       const apiCalls = [
         this.$axios.post('http://172.28.17.102:3600/monitor/queuebranch', {
-          branchid: `${this.branchid}`,
+          branchid: `${branchIdToSend}`,
         }),
         this.$axios
           .post('http://172.28.17.102:3600/monitor/allqueueworkbyemployee', {
-            branchid: `${this.branchid}`,
+            branchid: `${branchIdToSend}`,
             employeeid: this.fistname,
           })
           .catch((error) => {
@@ -543,7 +558,7 @@ export default {
           }),
         this.$axios
           .post('http://172.28.17.102:3600/branch/findbranchbyid', {
-            branchid: `${this.branchid}`,
+            branchid: `${branchIdToSend}`,
           })
           .catch((error) => {
             if (error.response) {
@@ -574,10 +589,11 @@ export default {
           console.log('Queue data not available')
           this.queuesnotsuccess = []
         }
-        console.log('Branch:', this.fistname)
-        this.queues = databranchid.data || []
-        this.$store.commit('SET_QUEUE', this.queues)
-        this.title = title.data.BNameL
+        const items = databranchid.data || [];
+        this.$store.commit('SET_QUEUE', items);
+        const Title = title.data.BNameL;
+        this.$store.commit('SET_TITLE', Title)
+        console.log(this.queue)
       } catch (error) {
         console.error('Error fetching data:', error)
       }
@@ -770,5 +786,8 @@ export default {
 .table-container {
   scrollbar-width: thin;
   scrollbar-color: rgb(255, 215, 0) #ffffff;
+}
+.custom-moues:hover {
+  cursor: pointer;
 }
 </style>
