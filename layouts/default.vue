@@ -230,6 +230,11 @@ export default {
           title: 'ເລືອກເເຂວງ',
           to: '/',
         },
+        {
+          icon: 'mdi-book-open-page-variant',
+          title: 'ໜັງສືຄູ່ມືໃຊ້ງານ',
+          to: '/queuebook',
+        },
       ],
 
       miniVariant: false,

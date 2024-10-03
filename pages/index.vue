@@ -75,7 +75,7 @@
                 </div>
               </v-card-actions>
               <h4 class="text-center custom-font">
-                ສາຂາ&nbsp;{{ item.branchid }}
+                {{ title }}
               </h4>
               <v-divider></v-divider>
               <v-card-actions>
@@ -92,7 +92,7 @@
                   </v-card>
                 </div>
                 <div>
-                  <h4 class="text-center custom-font">ໝົດກຳໜົດ</h4>
+                  <h4 class="text-center custom-font">ເວລາຈອງຄິວ</h4>
                   <v-card
                     outlined
                     width="161px"
@@ -100,14 +100,14 @@
                     class="custom-data shadow-card-text text-center"
                     style="padding-top: 4px"
                   >
-                    {{ formatAdjustDate(item.updatedAt, true) }}
+                    {{ formatAdjustDate(item.createdAt, false) }}
                   </v-card>
                 </div>
               </v-card-actions>
               <v-card-actions class="py-0 px-4">
                 <div>
-                  <h5 class="text-center custom-font">ເວລາຈອງຄິວ</h5>
-                  {{ formatAdjustDate(item.updatedAt, false) }}
+                  <h5 class="text-center custom-font">ໝົດກຳໜົດ</h5>
+                  {{ formatAdjustDate(item.updatedAt, true) }}
                 </div>
                 <v-spacer />
                 <v-btn
@@ -177,30 +177,46 @@
                 >
               </div>
               <v-spacer />
-              <div>
-                <h3 class="text-center custom-font text-center">
-                  ສາຂາ&nbsp;{{ usequeue.branchid }}
-                </h3>
-              </div>
+              <v-card class="pa-2" style="background-color: transparent; overflow: hidden">
+                <div
+                  class="marquee-text"
+                  style="
+                    color: #ffcc00;
+                    display: inline-block;
+                    white-space: nowrap;
+                  "
+                >
+                  <h3 class="text-center custom-font text-center">
+                    {{ title }}
+                  </h3>
+                </div>
+              </v-card>
               <v-spacer />
             </v-card-actions>
             <div class="text-center">
-              <h2>{{ formatAdjustDate(usequeue.updatedAt, true) }}</h2>
+              <h2 class="custom-font">ຄິວກໍາລັງທໍາທຸລະກຳ</h2>
               <v-divider></v-divider>
             </div>
-            <v-card-actions class="py-0 px-4">
-              <div>
-                <h4 class="text-center custom-font">ໃຊ້ເວລາທໍາງານ</h4>
-                <v-card
-                  outlined
-                  width="85px"
-                  height="85px"
-                  class="custom-data shadow-card-text text-center d-flex justify-center align-center"
-                  style="border-radius: 50%"
-                >
-                  <span style="color: rgb(230, 184, 0)"
-                    >{{ formattedTime }}s</span
+            <v-card-actions class="pa-4">
+              <div class="pa-0">
+                <h4 class="custom-font">ໜ້າວຽກ:</h4>
+                <v-card flat width="200" class="pa-0 border-input">
+                  <Select
+                    v-model="typeQueue"
+                    :placeholder="typeQueue ? typeQueue : 'ໜ້າວຽກ'"
+                    class="custom-font"
+                    style="width: 200px"
                   >
+                    <Option
+                      v-for="(item, index) in itemstype"
+                      :value="item"
+                      :key="index"
+                      class="custom-font mouse-hover-menu"
+                      style="width: 150px"
+                      >{{ item }}</Option
+                    >
+                    <v-divider style="width: 150px"></v-divider>
+                  </Select>
                 </v-card>
               </div>
               <v-spacer />
@@ -234,8 +250,23 @@
               </div>
             </v-card-actions>
             <v-card-actions class="pa-0 px-4 py-0">
-              <v-spacer />
               <v-card-actions class="pa-0">
+                <h4 class="text-center custom-font">ໃຊ້ເວລາທໍາງານ</h4>
+                &nbsp;
+                <v-card
+                  outlined
+                  width="125px"
+                  height="35px"
+                  class="custom-data shadow-card-text text-center d-flex justify-center align-center"
+                  style="border-radius: 12px"
+                >
+                  <span style="color: rgb(230, 184, 0)"
+                    >{{ formattedTime }}s</span
+                  >
+                </v-card>
+              </v-card-actions>
+              <v-spacer />
+              <v-card-actions class="px-0 pb-0 pt-2">
                 <v-btn
                   text
                   class="custom-btn"
@@ -394,6 +425,7 @@ export default {
       formattedTime: '00:00',
       active: false,
       modalTyple: false,
+      itemstype: ['AA', 'BB', 'CC', 'DD'],
     }
   },
   computed: {
@@ -513,7 +545,6 @@ export default {
             this.active = true
             this.$store.commit('SET_QUEUE_USE', item)
           }
-          // console.log(item.id)
           this.$store.commit('removeQUEUE', item.id);
           console.log(response.statusText)
         } catch (error) {
@@ -525,7 +556,8 @@ export default {
               (queuesnotsuccess) => queuesnotsuccess.id !== item.id
             )
           : []
-        this.$store.commit('SET_QUEUE_USE', item)
+        this.$store.commit('SET_QUEUE_USE', item);
+        this.active = true;
       }
       this.calculateTimeDifference(true)
       this.modalTyple = false
@@ -789,5 +821,23 @@ export default {
 }
 .custom-moues:hover {
   cursor: pointer;
+}
+.marquee-text {
+  display: inline-block;
+  white-space: nowrap;
+  animation: scroll-left 10s linear infinite;
+}
+
+@keyframes scroll-left {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.marquee-text:hover {
+  animation-play-state: paused;
 }
 </style>
